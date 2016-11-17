@@ -20,7 +20,7 @@ class resolution_algorithm
         // destructor
         virtual ~resolution_algorithm();
         // main proof method, same for every algorithm
-        int prove(void);
+        bool prove(void);
         // generating a set of new clauses from the set of processed clauses
         // and a selected given clause, same for every algorithm
         void generate(clause_t&);
@@ -66,3 +66,4 @@ class res_h3 : public resolution_algorithm
         virtual clause_t choose_clause(void);
         virtual bool should_reject(void);
 };
+

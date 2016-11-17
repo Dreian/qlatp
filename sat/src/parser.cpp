@@ -4,6 +4,7 @@
 #include <cassert>
 #include <cstdlib>
 #include <ctime>
+#include <fstream>
 #include <iostream>
 #include <set>
 #include <string>
@@ -18,13 +19,15 @@
     if (DEBUG) { \
         std::cout << obj; }
 
+// returns a set of clauses from a stream,
+// expects SATLIB format
 clause_set_t parse_stream(std::istream& in)
 {
     std::string line;
     clause_set_t cls;
     do {
         std::getline(in, line);
-        debug_write(line << "\n");
+        // debug_write(line << "\n");
     } while (line[0] == 'c');
     line = line.substr(line.find(" ") + 1);
     line = line.substr(line.find(" ") + 1);
@@ -44,16 +47,49 @@ clause_set_t parse_stream(std::istream& in)
         } while (lit != 0);
         cls.insert(cl);
     }
+    debug_write("Processed clause set" << std::endl);
     return cls;
 }
 
-// temporary, for testing purposes
+// parse and solve a concrete problem, input from
+// a stream
+bool solve_problem(std::istream& in)
+{
+    clause_set_t cs;
+    try {
+        cs = parse_stream(in); 
+    } catch (const std::exception& ex) {
+        debug_write("Parsing error detected!" << std::endl);
+        debug_write(ex.what() << std::endl);
+        debug_write("Finishing..." << std::endl);
+        return false;
+    }
+    res_h3 algo(cs, 30);
+    bool proved = algo.prove();
+    debug_write((proved ? "SUCCESS" : "FAIL") << std::endl);
+    return proved;
+}
+
+// accept a list of file names from an input stream, then
+// solve all problems in the given files
+void process_files(std::istream& in)
+{
+    std::string file_name;
+    while (std::getline(in, file_name)) {
+        std::fstream fs;
+        debug_write("*******************************" << std::endl);
+        debug_write(file_name << std::endl);
+        debug_write("*******************************" << std::endl);
+        fs.open(file_name, std::fstream::in);
+        solve_problem(fs);
+        fs.close();
+    }
+}
+
+// get file names from stdin
 int main(int argc, char** argv)
 {
-    srand(time(0));
-    debug_write("Hello!\n");
-    clause_set_t cs = parse_stream(std::cin);
-    res_h3 algo(cs, 1000);
-    std::cout << algo.prove() << std::endl;
+    process_files(std::cin);
     return 0;
 }
+

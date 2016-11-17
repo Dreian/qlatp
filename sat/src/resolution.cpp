@@ -46,13 +46,15 @@ resolution_algorithm::~resolution_algorithm() {}
 
 // Proof procedure of every resolution algorithm. Implemented only in base
 // class, it follows the given clause algorithm
-int resolution_algorithm::prove(void)
+bool resolution_algorithm::prove(void)
 {
     bool proved = false;
     clause_t chosen_clause;
     // main loop
     while (!unprocessed.empty() && !proved && !should_reject()) {
-        if (DEBUG) {
+        // more detailed debug information
+        // not needed here
+        /*if (DEBUG) {
             debug_write("Processed: ");
             for (clause_t cl : processed) {
                 print_clause(cl);
@@ -61,7 +63,7 @@ int resolution_algorithm::prove(void)
             for (clause_t cl : unprocessed) {
                 print_clause(cl);
             }
-        }
+        }*/
         // choose clause (based on heuristic)
         chosen_clause = choose_clause();
         // did we find a contradiction?
@@ -72,14 +74,10 @@ int resolution_algorithm::prove(void)
             processed.insert(chosen_clause);
             generate(chosen_clause);
         }
-        debug_write("\n");
+        //debug_write("\n");
     }
     // result of proof attempt?
-    if (proved) {
-        return 1;
-    } else {
-        return 0;
-    }
+    return proved;
 }
 
 // Helper method for the theorem proving algorithm. Given two clause
@@ -169,10 +167,12 @@ bool res_h1::should_reject(void)
 res_h2::res_h2(clause_set_t& clauses, int steps) :
     resolution_algorithm(clauses)
 {
+    if (steps <= 0) {
+        throw "Could not create resolution algorithm";
+    }
     steps_limit = steps;
     steps_taken = 0;
     debug_write("H2 used\n");
-    // TODO: check if limit > 0
 }
 
 // H2 method of choosing the clause
@@ -199,10 +199,12 @@ bool res_h2::should_reject(void)
 res_h3::res_h3(clause_set_t& clauses, int steps) :
     resolution_algorithm(clauses)
 {
+    if (steps <= 0) {
+        throw "Could not create resolution algorithm";
+    }
     steps_limit = steps;
     steps_taken = 0;
     debug_write("H3 used\n");
-    // TODO: check if limit > 0
 }
 
 // H3 method of choosing the clause
@@ -246,40 +248,3 @@ bool res_h3::should_reject(void)
     return (*get_unprocessed()).empty() || steps_taken == steps_limit;
 }
 
-// temporary, for testing purposes
-/*int main(int argc, char** argv)
-{
-    srand(time(0));
-    debug_write("Hello!\n");
-    // {not p, r}, {p}, {not q, r}, {not r}
-    proposition_t p = 1;
-    proposition_t q = 2;
-    proposition_t r = 3;
-    literal_t t_p(p, true);
-    literal_t t_q(q, true);
-    literal_t t_r(r, true);
-    literal_t f_p(p, false);
-    literal_t f_q(q, false);
-    literal_t f_r(r, false);
-    clause_t cl1, cl2, cl3, cl4;
-    cl1.insert(t_p);
-    cl2.insert(f_p); cl2.insert(t_r);
-    cl3.insert(f_q); cl3.insert(t_r);
-    cl4.insert(f_r);
-    clause_set_t cls1;
-    cls1.insert(cl1); cls1.insert(cl2); cls1.insert(cl3); cls1.insert(cl4);
-    res_h3 algo1(cls1, 5);
-    debug_write("Trying to prove now.\n");
-    std::cout << algo1.prove() << std::endl;
-    // {p, q}, {not q}, {not r}
-    clause_t cl5, cl6, cl7;
-    cl5.insert(t_p); cl5.insert(t_q);
-    cl6.insert(f_q);
-    cl7.insert(f_r);
-    clause_set_t cls2;
-    cls2.insert(cl5); cls2.insert(cl6); cls2.insert(cl7);
-    res_h3 algo2(cls2, 5);
-    debug_write("Trying to prove now.\n");
-    std::cout << algo2.prove() << std::endl;
-    return 0;
-}*/
