@@ -51,6 +51,8 @@ clause_set_t parse_stream(std::istream& in)
     return cls;
 }
 
+double l = 1.0;
+
 // parse and solve a concrete problem, input from
 // a stream
 bool solve_problem(std::istream& in)
@@ -64,7 +66,8 @@ bool solve_problem(std::istream& in)
         debug_write("Finishing..." << std::endl);
         return false;
     }
-    res_h3 algo(cs, 30);
+    res_qlearn algo(cs, 100, l, 1000.0);
+    //res_h3 algo(cs, 100);
     bool proved = algo.prove();
     debug_write((proved ? "SUCCESS" : "FAIL") << std::endl);
     return proved;
@@ -81,7 +84,9 @@ void process_files(std::istream& in)
         debug_write(file_name << std::endl);
         debug_write("*******************************" << std::endl);
         fs.open(file_name, std::fstream::in);
-        solve_problem(fs);
+        for (int i = 0; i < 5000; i++, l += 0.0001) {
+            solve_problem(fs);
+        }
         fs.close();
     }
 }

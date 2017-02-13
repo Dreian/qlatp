@@ -3,6 +3,7 @@
 
 #include <iostream>
 #include "clauses.h"
+#include "neural_net.h"
 
 // generic resolution algorithm structure, abstract class, Strategy pattern
 class resolution_algorithm
@@ -18,7 +19,7 @@ class resolution_algorithm
         // constructor, takes initial set of unprocessed clauses
         resolution_algorithm(clause_set_t&);
         // destructor
-        virtual ~resolution_algorithm();
+        virtual ~resolution_algorithm(void);
         // main proof method, same for every algorithm
         bool prove(void);
         // generating a set of new clauses from the set of processed clauses
@@ -63,6 +64,33 @@ class res_h3 : public resolution_algorithm
         int steps_limit;
     public:
         res_h3(clause_set_t&, int);
+        virtual clause_t choose_clause(void);
+        virtual bool should_reject(void);
+};
+
+// Q-learning: a reinforcement learning approach to choosing an action to
+// perform
+class res_qlearn : public resolution_algorithm
+{
+    private:
+        int steps_taken;
+        int steps_limit;
+        bool previously_took;
+        const int state_feature_cnt = 2;
+        const int action_feature_cnt = 1;
+        const int hidden_neurons_cnt = 10;
+        const double nn_learn_rate = 0.001;
+        const double ql_learn_rate = 0.001;
+        const int learn_iter_cnt = 200;
+        const double discount_factor = 0.999;
+        double prob_take = 0.2;
+        double lambda;
+        double reward;
+        static std::vector<std::vector<double>> in_batch;
+        static std::vector<double> out_batch;
+        static neural_net qfun_est;
+    public:
+        res_qlearn(clause_set_t&, int, double, double);
         virtual clause_t choose_clause(void);
         virtual bool should_reject(void);
 };
